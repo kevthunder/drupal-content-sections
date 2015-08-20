@@ -1,0 +1,108 @@
+<?php
+// $Id: content_sections.install
+
+/**
+ * @file
+ * Installation file for the content_sections module.
+ */
+
+/**
+ * Implementation of hook_install().
+ */
+function content_sections_install() {
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function content_sections_uninstall() {
+}
+
+/**
+ * Implementation of hook_schema_alter().
+ */
+function content_sections_schema_alter(&$schema) {
+}
+
+
+/**
+ * Implements  hook_update_N().
+ */
+function content_sections_update_7001(&$sandbox){
+	$fields = field_info_fields();
+	foreach ($fields as $field_name => $field) {
+		if ($field['type'] == 'content_sections' && $field['storage']['type'] == 'field_sql_storage') {
+		  $schema = content_sections_field_schema($field);
+		  foreach ($field['storage']['details']['sql'] as $type => $table_info) {
+			foreach ($table_info as $table_name => $columns) {
+			  $column_name = _field_sql_storage_columnname($field_name, 'target_rev');
+			  db_add_field($table_name, $column_name, $schema['columns']['target_rev']);
+			}
+		  }
+		}
+	}
+	field_cache_clear();
+}
+
+
+
+/**
+ * Implements  hook_field_schema().
+ */
+function content_sections_field_schema($field) {
+	if ($field['type'] == 'content_sections') {
+		$columns = array(
+		  'label' => array(
+			  'type' => 'varchar',
+			  'length' => 255,
+			  'not null' => FALSE,
+		  ),
+		  'parent_delta' => array(
+			'type' => 'int',
+			'size' => 'normal',
+			'not null' => FALSE,
+		  ),
+		  'lft' => array(
+			'type' => 'int',
+			'size' => 'normal',
+			'not null' => FALSE,
+		  ),
+		  'rght' => array(
+			'type' => 'int',
+			'size' => 'normal',
+			'not null' => FALSE,
+		  ),
+		  'depth' => array(
+			'type' => 'int',
+			'size' => 'normal',
+			'not null' => FALSE,
+		  ),
+		  'plugin' => array(
+			'type' => 'varchar',
+			'length' => 255,
+			'not null' => FALSE,
+		  ),
+		  'target' => array(
+			'type' => 'varchar',
+			'length' => 255,
+			'not null' => FALSE,
+		  ),
+		  'target_rev' => array(
+			'type' => 'int',
+			'size' => 'normal',
+			'not null' => FALSE,
+		  ),
+		  'options' => array(
+			'type' => 'text',
+			'size' => 'big',
+			'not null' => FALSE,
+		  ),
+		);
+		
+		$schema = array(
+		  'columns' => $columns,
+		);
+		
+		return $schema;
+	}
+}

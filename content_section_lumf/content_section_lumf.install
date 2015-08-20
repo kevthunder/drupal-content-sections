@@ -1,0 +1,25 @@
+<?php
+
+/**
+ * @file
+ * Installation file for the content_section_lumf module.
+ */
+
+/**
+ * Implementation of hook_install().
+ */
+function content_section_lumf_install() {
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function content_section_lumf_uninstall() {
+}
+
+/**
+ * Implementation of hook_schema_alter().
+ */
+function content_section_lumf_schema_alter(&$schema) {
+}
+

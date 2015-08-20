@@ -1,0 +1,142 @@
+<?php
+// $Id: content_sections.module
+
+/**
+ * @file
+ * Code for the content_sections module.
+ */
+ 
+ 
+include_once 'content_sections.field.inc';
+include_once 'content_sections.widget.inc';
+include_once 'content_sections.formatter.inc';
+
+	
+	//////////////////////////////////////////////////////////////////////
+	/////////////////////////////  Dispatch  /////////////////////////////
+	//////////////////////////////////////////////////////////////////////
+
+	/**
+	 * Implements hook_theme().
+	 */
+	function content_sections_theme(){
+		return array_merge(
+			content_sections_widget_theme(),
+			content_sections_formatter_theme()
+		);
+	}
+
+	/**
+	 * Implements hook_menu().
+	 */
+	function content_sections_menu(){
+		return array_merge(
+			content_sections_field_menu()
+		);
+	}
+
+	/////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////  Section type Plugin  /////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////
+
+	/**
+	 * Implements hook_ctools_plugin_type().
+	 */
+	function content_sections_ctools_plugin_type() {
+		$plugins['section_type'] = array(
+		);
+
+		return $plugins;
+	}
+	
+	function content_sections_get_section_type($sectionType) {
+		ctools_include('context');
+		ctools_include('plugins');
+		return ctools_get_plugins('content_sections', 'section_type', $sectionType);
+	}
+	function content_sections_get_section_types() {
+		ctools_include('context');
+		ctools_include('plugins');
+		$types = ctools_get_plugins('content_sections', 'section_type');
+		
+		return $types;
+	}
+	
+	function content_sections_section_types_options() {
+	
+		if (!$cached = cache_get('content_sections_section_types_options')) {
+			$types = content_sections_get_section_types();
+			//kpr($types);
+			
+			$options = array();
+			foreach($types as $type){
+				$options[$type['name']] = $type['title'];
+			}
+			
+			cache_set('content_sections_section_types_options', $options, 'cache',  CACHE_TEMPORARY); //stores in cache table 
+			
+			return $options;
+		}else{
+			return($cached->data);
+		}
+		
+	}
+
+	/**
+	 * Implements hook_ctools_plugin_directory().
+	 */
+	function content_sections_ctools_plugin_directory($module, $plugin) {
+	  if ($module == 'content_sections' && $plugin == 'section_type') {
+		return 'plugins/section_types';
+	  }
+	}
+	
+	
+	//////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////  Helper Functions  /////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////
+	
+	function content_sections_update_tree_data($items,$sort=true,$updateDelta=false){
+		//kpr($items);
+		if($sort){
+			uasort($items, 'drupal_sort_weight');
+		}
+		//dpm($items);
+		$itemByParent = array();
+		foreach ($items as $delta => $item) {
+			if(empty($item['deleted'])){
+				$p = (isset($item['parent_delta']) && strlen($item['parent_delta']))?$item['parent_delta']:'root';
+				$itemByParent[$p][$delta] = $item;
+			}
+		}
+		//dpm($itemByParent);
+		$items = _content_sections_update_tree_data('root',$itemByParent);
+		if($updateDelta){
+			$newDeltas = array_flip(array_keys($items));
+			foreach ($items as $delta => $item) {
+				if(isset($item['parent_delta']) && strlen($item['parent_delta'])){
+					$items[$delta]['parent_delta'] = $newDeltas[$item['parent_delta']];
+				}
+			}
+			$items = array_values($items);
+		}
+		return $items;
+	}
+	function _content_sections_update_tree_data($parent,$itemByParent,$depth=0,&$pos=1){
+		$items = array();
+		if(!empty($itemByParent[$parent])){
+			foreach($itemByParent[$parent] as $delta => $item){
+				$item['depth'] = $depth;
+				$item['lft'] = $pos;
+				$pos++;
+				$children = _content_sections_update_tree_data($delta,$itemByParent,$depth+1,$pos);
+				$item['rght'] = $pos;
+				$pos++;
+				$items[$delta] = $item;
+				if(!empty($children)){
+					$items = $items + $children;
+				}
+			}
+		}
+		return $items;
+	}

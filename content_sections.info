@@ -1,0 +1,15 @@
+; $Id: content_sections.info,v 1.3 2011/01/21 10:43:00 anrikun Exp $
+name = Content sections
+description = A way to add static content by dividing it in multiple sections
+dependencies[] = field
+dependencies[] = ctools
+dependencies[] = entity
+core = 7.x
+package = Content
+files[] = content_sections.module
+files[] = content_sections.install
+files[] = content_sections.field.inc
+files[] = content_sections.widget.inc
+files[] = content_sections.formatter.inc
+; configure = 
+

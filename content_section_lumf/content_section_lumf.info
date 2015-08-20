@@ -1,0 +1,10 @@
+name = Less UI More Fun with Content sections
+description = Less UI More Fun with Content sections
+dependencies[] = content_sections
+dependencies[] = lumf
+dependencies[] = lumf_node
+core = 7.x
+files[] = content_section_lumf.module
+files[] = content_section_lumf.install
+
+
